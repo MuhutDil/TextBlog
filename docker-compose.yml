@@ -9,9 +9,9 @@ services:
     depends_on:
       - db
   db:
-    image: postgres:13
+    image: postgres:17
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql@17/data/
     environment:
       - "POSTGRES_HOST_AUTH_METHOD=trust"
 
