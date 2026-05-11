@@ -14,3 +14,8 @@ RUN pip install -r requirements.txt
 
 # Copy project
 COPY . .
+
+# Start migrations and server
+RUN chmod +x /code/entrypoint.sh
+ENTRYPOINT ["/code/entrypoint.sh"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
