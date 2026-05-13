@@ -6,7 +6,7 @@ from .views import post_list
 User = get_user_model()
  
 class PostListViewTest(TestCase):
- 
+
     def setUp(self):
         self.factory = RequestFactory()
         self.user = User.objects.create_user(
