@@ -8,32 +8,33 @@ from blog.views import post_list, post_detail
 User = get_user_model()
 
 class BaseViewTest(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.user = User.objects.create_user(
+    @classmethod
+    def setUpTestData(cls):
+        cls.factory = RequestFactory()
+        cls.user = User.objects.create_user(
             username='testuser',
             password='testpass123'
         )
         # Create published posts
-        self.published_post = Post.objects.create(
+        cls.published_post = Post.objects.create(
             title='Published Post 1',
             slug='published-post-1',
-            author=self.user,
+            author=cls.user,
             body='Content for published post 1.',
             status=Post.Status.PUBLISHED,
         )
-        self.another_published_post = Post.objects.create(
+        cls.another_published_post = Post.objects.create(
             title='Published Post 2',
             slug='published-post-2',
-            author=self.user,
+            author=cls.user,
             body='Content for published post 2.',
             status=Post.Status.PUBLISHED,
         )
         # Create a draft post
-        self.draft_post = Post.objects.create(
+        cls.draft_post = Post.objects.create(
             title='Draft Post',
             slug='draft-post',
-            author=self.user,
+            author=cls.user,
             body='Content for draft post.',
             status=Post.Status.DRAFT,
         )
@@ -76,47 +77,68 @@ class PostListViewTest(BaseViewTest):
  
 
 class PostDetailViewTest(BaseViewTest):
+    def _published_post_data(self):
+        return {
+            'year': self.published_post.publish.year,
+            'month': self.published_post.publish.month,
+            'day': self.published_post.publish.day,
+            'post': self.published_post.slug,
+        }
+
+    def _draft_post_data(self):
+        return {
+            'year': self.draft_post.publish.year,
+            'month': self.draft_post.publish.month,
+            'day': self.draft_post.publish.day,
+            'post': self.draft_post.slug,
+        }
+
     def test_published_post_returns_200(self):
         """A valid published post should return 200 OK."""
         request = self.factory.get('/')
-        response = post_detail(request, id=self.published_post.id)
+        response = post_detail(request, **self._published_post_data())
         self.assertEqual(response.status_code, 200)
  
     def test_draft_post_returns_404(self):
         """A draft post should return 404 — not publicly accessible."""
         request = self.factory.get('/')
         with self.assertRaises(Http404):
-            post_detail(request, id=self.draft_post.id)
+            post_detail(request, **self._draft_post_data())
  
     def test_nonexistent_post_returns_404(self):
         """A non-existent post ID should return 404."""
         request = self.factory.get('/')
         with self.assertRaises(Http404):
-            post_detail(request, id=99999)
+            post_detail(
+                request, 
+                year=2000, 
+                month=1, 
+                day=1, 
+                post='dont-exist')
  
     def test_correct_template_used(self):
         """View should render the correct template."""
-        url = reverse('blog:post_detail', args=[self.published_post.id])
+        url = reverse('blog:post_detail', kwargs=self._published_post_data())
         response = self.client.get(url)
         self.assertTemplateUsed(response, 'blog/post/detail.html')
  
     def test_context_contains_post(self):
         """Context should contain the correct 'post' object."""
-        url = reverse('blog:post_detail', args=[self.published_post.id])
+        url = reverse('blog:post_detail', kwargs=self._published_post_data())
         response = self.client.get(url)
         self.assertIn('post', response.context)
         self.assertEqual(response.context['post'], self.published_post)
  
     def test_context_post_is_published(self):
         """The post returned in context must have PUBLISHED status."""
-        url = reverse('blog:post_detail', args=[self.published_post.id])
+        url = reverse('blog:post_detail', kwargs=self._published_post_data())
         response = self.client.get(url)
         post = response.context['post']
         self.assertEqual(post.status, Post.Status.PUBLISHED)
  
     def test_context_post_has_correct_fields(self):
         """The post in context should match the expected title and body."""
-        url = reverse('blog:post_detail', args=[self.published_post.id])
+        url = reverse('blog:post_detail', kwargs=self._published_post_data())
         response = self.client.get(url)
         post = response.context['post']
         self.assertEqual(post.title, 'Published Post 1')
