@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.http import Http404
 from blog.models import Post
 from blog.views import post_list, post_detail
+
+from blog.views import POSTS_ON_PAGE
  
 User = get_user_model()
 
@@ -43,6 +45,7 @@ class BaseViewTest(TestCase):
         Post.objects.all().delete()
         User.objects.all().delete()
 
+
 class PostListViewTest(BaseViewTest):
     def test_view_returns_200(self):
         """View should return a 200 OK response."""
@@ -64,7 +67,7 @@ class PostListViewTest(BaseViewTest):
         """Only published posts should appear — drafts must be excluded."""
         response = self.client.get('/')
         posts = response.context['posts']
-        self.assertEqual(posts.count(), 2)
+        self.assertEqual(len(posts), 2)
         for post in posts:
             self.assertEqual(post.status, Post.Status.PUBLISHED)
  
@@ -144,3 +147,39 @@ class PostDetailViewTest(BaseViewTest):
         self.assertEqual(post.title, 'Published Post 1')
         self.assertEqual(post.body, 'Content for published post 1.')
 
+
+class PostListViewPaginationTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        # Create 25 blog posts
+        for i in range(25):
+            Post.objects.create(
+                title=f'Published Post {i}',
+                slug=f'published-post-{i}',
+                author=cls.user,
+                body=f'Content for published post {i}.',
+                status=Post.Status.PUBLISHED,
+            )
+    
+    def test_first_page_returns_correct_amount_posts(self):
+        response = self.client.get('/?page=1')
+        self.assertEqual(len(response.context['posts']), POSTS_ON_PAGE)
+        self.assertEqual(response.context['posts'][0].title, 'Published Post 24')  # assuming desc order
+        
+    # def test_page_out_of_range_returns_last_page(self):
+    #     response = self.client.get('/?page=100')
+    #     last_page = int(25 / POSTS_ON_PAGE)
+    #     self.assertEqual(response.context['page_obj'].number, last_page)  # last page
+    
+    # def test_invalid_page_returns_first_page(self):
+    #     response = self.client.get('/?page=abc')
+    #     self.assertEqual(response.context['page_obj'].number, 1)
+    
+    # def test_empty_page_returns_empty_queryset(self):
+    #     # Delete all posts or query beyond range
+    #     response = self.client.get('/?page=999')
+    #     self.assertEqual(len(response.context['posts']), 0)
