@@ -31,7 +31,7 @@ def post_list(request, tag_slug=None):
         posts = paginator.page(paginator.num_pages)
     return render(
         request,
-        'blog/post/list.html',
+        'blog/list.html',
         {
             'posts': posts,
             'tag': tag,
@@ -45,7 +45,7 @@ class PostListView(ListView):
     queryset = Post.published.all()
     context_object_name = 'posts'
     paginate_by = POSTS_ON_PAGE
-    template_name = 'blog/post/list.html'
+    template_name = 'blog/list.html'
     
 
 def post_detail(request, year, month, day, post):
@@ -73,7 +73,7 @@ def post_detail(request, year, month, day, post):
 
     return render(
         request,
-        'blog/post/detail.html',
+        'blog/detail.html',
         {
             'post': post,
             'comments': comments,
@@ -121,7 +121,7 @@ def post_share(request, post_id):
         form = EmailPostForm()
     return render(
         request,
-        'blog/post/share.html',
+        'blog/share.html',
         {
             'post': post,
             'form': form,
@@ -150,7 +150,7 @@ def post_comment(request, post_id):
         comment.save()
     return render(
         request,
-        'blog/post/comment.html',
+        'blog/comment.html',
         {
             'post': post,
             'form': form,

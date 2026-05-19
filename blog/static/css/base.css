@@ -59,7 +59,16 @@ label {
     color:#333;
     margin-bottom:4px; 
 }
-input, textarea { 
+/* input, textarea { 
+    clear:both;
+    float:left;
+    margin:0 0 10px;
+    background:#ededed;
+    border:0;
+    padding:6px 10px;
+    font-size:12px;
+} */
+textarea { 
     clear:both;
     float:left;
     margin:0 0 10px;

@@ -1,4 +1,4 @@
-{% extends "blog/base.html" %}
+{% extends "base.html" %}
 {% load blog_tags %}
 
 {% block title %}{{ post.title }}{% endblock %}
@@ -40,5 +40,5 @@
   {% empty %}
     <p>There are no comments yet.</p>
   {% endfor %}
-  {% include "blog/post/includes/comment_form.html" %}
+  {% include "blog/includes/comment_form.html" %}
 {% endblock %}

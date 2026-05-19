@@ -56,7 +56,7 @@ class PostListViewTest(BaseViewTest):
     def test_view_uses_correct_template(self):
         """View should render the correct template."""
         response = self.client.get('/')
-        self.assertTemplateUsed(response, 'blog/post/list.html')
+        self.assertTemplateUsed(response, 'blog/list.html')
  
     def test_context_contains_posts(self):
         """Context should contain a 'posts' key."""
@@ -123,7 +123,7 @@ class PostDetailViewTest(BaseViewTest):
         """View should render the correct template."""
         url = reverse('blog:post_detail', kwargs=self._published_post_data())
         response = self.client.get(url)
-        self.assertTemplateUsed(response, 'blog/post/detail.html')
+        self.assertTemplateUsed(response, 'blog/detail.html')
  
     def test_context_contains_post(self):
         """Context should contain the correct 'post' object."""

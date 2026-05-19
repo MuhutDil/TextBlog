@@ -4,7 +4,7 @@
 <html>
 <head>
   <title>{% block title %}{% endblock %}</title>
-  <link href="{% static "css/blog.css" %}" rel="stylesheet">
+  <link href="{% static "css/base.css" %}" rel="stylesheet">
 </head>
 <body>
   <div id="content">
@@ -12,7 +12,18 @@
     {% endblock %}
   </div>
   <div id="sidebar">
-    <h2>My blog</h2>
+    <h2>Blog</h2>
+
+    {% if user.is_authenticated %}
+      <h3>Hello {{ user.username }}!</h3>
+      <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+      </form>
+    {% else %}
+      <h3>Please <a href="{% url 'signup' %}">Sign Up</a> or <a href="{% url 'login' %}">Log In</a>.</h3>
+    {% endif %}
+
     <p>
       This is my blog.
       I've written {% total_posts %} posts so far.
