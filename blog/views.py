@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import TrigramSimilarity
 from django.core.mail import send_mail
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404, render
@@ -6,7 +7,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Count
 from taggit.models import Tag
 
-from .forms import CommentForm, EmailPostForm
+from .forms import CommentForm, EmailPostForm, SearchForm
 from .models import Post
 
 POSTS_ON_PAGE = 3
@@ -155,5 +156,32 @@ def post_comment(request, post_id):
             'post': post,
             'form': form,
             'comment': comment
+        },
+    )
+
+def post_search(request):
+    form = SearchForm()
+    query = None
+    results = []
+
+    if 'query' in request.GET:
+        form = SearchForm(request.GET)
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            results = (
+                Post.published.annotate(
+                    similarity=TrigramSimilarity('title', query),
+                )
+                .filter(similarity__gt=0.1)
+                .order_by('-similarity')
+            )
+
+    return render(
+        request,
+        'blog/search.html',
+        {
+            'form': form,
+            'query': query,
+            'results': results
         },
     )

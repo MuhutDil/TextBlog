@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.sitemaps',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'taggit',
     'users.apps.UsersConfig',
     'blog.apps.BlogConfig',
@@ -90,7 +91,7 @@ if DATABASE_SOURCE == "postgres":
             "NAME": "postgres",
             "USER": "postgres",
             "PASSWORD": "postgres",
-            "HOST": "db",
+            "HOST": "localhost",
             "PORT": 5432,
         }
     }
@@ -102,16 +103,6 @@ else:
         }
     }
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "postgres",
-#         "USER": "postgres",
-#         "PASSWORD": "postgres",
-#         "HOST": "db",
-#         "PORT": 5432,
-#     }
-# }
 
 
 # Password validation
