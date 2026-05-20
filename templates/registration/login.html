@@ -4,9 +4,17 @@
 
 {% block content %}
   <h2>Log In</h2>
+  <p>
+    If you don't have an account <a href="{% url "signup" %}">register here</a>.
+  </p>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Log In</button>
   </form>
+  <p>
+    <a href="{% url "password_reset" %}">
+      Forgotten your password?
+    </a>
+  </p>
 {% endblock content %}
