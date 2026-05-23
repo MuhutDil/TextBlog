@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 from taggit.managers import TaggableManager
 
 
@@ -48,6 +49,12 @@ class Post(models.Model):
     
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        # Generate slug if it doesn't exist
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)            
     
     def get_absolute_url(self):
         return reverse(

@@ -1,17 +1,20 @@
 from django.urls import path
 
-from . import views
+from . import views, viewsCRUD
 
 app_name = 'blog'
 
+POST_LINK = '<int:year>/<int:month>/<int:day>/<slug:post>/'
+
 urlpatterns = [
     path('', views.post_list, name='home'),
+    path('create/', viewsCRUD.post_create, name='post_create'),
     # path('', views.PostListView.as_view(), name='post_list'),
     path(
         'tag/<slug:tag_slug>/', views.post_list, name='post_list_by_tag'
     ),
     path(
-        '<int:year>/<int:month>/<int:day>/<slug:post>/',
+        POST_LINK,
         views.post_detail,
         name='post_detail',
     ),
