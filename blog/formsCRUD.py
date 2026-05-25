@@ -13,7 +13,7 @@ class RestrictedTagField(forms.ModelMultipleChoiceField):
     #     return [tag.name for tag in tags]
 
 
-class PostCreateForm(forms.ModelForm):
+class PostForm(forms.ModelForm):
     tags = RestrictedTagField(
         queryset=Tag.objects.all(),
         widget=forms.SelectMultiple,
@@ -23,10 +23,3 @@ class PostCreateForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'body', 'status', 'tags',]
-
-
-class PostUpdateForm(forms.ModelForm):
-    class Meta:
-        model = Post
-        fields = ['title', 'body', 'status', 'tags',]
-    

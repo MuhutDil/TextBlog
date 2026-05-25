@@ -1,11 +1,11 @@
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 from django.contrib import messages
 from functools import wraps
 
-from .formsCRUD import PostCreateForm, PostUpdateForm
+from .formsCRUD import PostForm
 from .models import Post
 
 
@@ -26,8 +26,8 @@ def user_is_author(view_func):
 
 @login_required
 def post_create(request):
+    form = PostForm(request.POST or None)
     if request.method == 'POST':
-        form = PostCreateForm(request.POST)
         # Same published post in this data doen't found
         if not Post.published.filter(
             slug=request.POST['title'], 
@@ -42,8 +42,6 @@ def post_create(request):
                 return redirect(post.get_absolute_url())
         messages.error(request, "A post with the same title was already published today.")
     
-    else:
-        form = PostCreateForm()
     return render(
         request,
         'blog/create.html',
@@ -58,19 +56,14 @@ def post_update(request, post_id):
     post = get_object_or_404(
         Post,
         id=post_id,
-        status=Post.Status.PUBLISHED
     )
+    form = PostForm(request.POST or None, instance=post)
     if request.method == 'POST':
-        form = PostUpdateForm(request.POST)
+        # form = PostUpdateForm(request.POST)
         if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            form.save_m2m()
+            form.save()
             messages.success(request, "Your post has been updated!")
             return redirect(post.get_absolute_url())
-    else:
-        form = PostUpdateForm(instance=post)
     return render(
         request,
         'blog/update.html',
@@ -87,10 +80,10 @@ def post_delete(request, post_id):
     post = get_object_or_404(
         Post,
         id=post_id,
-        status=Post.Status.PUBLISHED
     )
     if request.method == "POST":
         post.delete()
+        messages.success(request, "Your post has been deleted!")
         return redirect('/')
     return render(request, 'blog/confirm_delete.html', {'post': post})
 

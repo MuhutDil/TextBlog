@@ -38,20 +38,11 @@ def post_list(request, tag_slug=None):
         }
     )
 
-class PostListView(ListView):
-    """
-    Alternative post list view
-    """
-    queryset = Post.published.all()
-    context_object_name = 'posts'
-    paginate_by = POSTS_ON_PAGE
-    template_name = 'blog/list.html'
-    
 
 def post_detail(request, year, month, day, post):
     post = get_object_or_404(
         Post,
-        status=Post.Status.PUBLISHED,
+        # status=Post.Status.PUBLISHED,
         slug=post,
         publish__year=year,
         publish__month=month,
