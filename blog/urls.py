@@ -4,7 +4,6 @@ from . import views, viewsCRUD
 
 app_name = 'blog'
 
-POST_LINK = '<int:year>/<int:month>/<int:day>/<slug:post>/'
 
 urlpatterns = [
     path('', views.post_list, name='home'),
@@ -14,10 +13,11 @@ urlpatterns = [
         'tag/<slug:tag_slug>/', views.post_list, name='post_list_by_tag'
     ),
     path(
-        POST_LINK,
+        '<int:year>/<int:month>/<int:day>/<slug:post>/',
         views.post_detail,
         name='post_detail',
     ),
+    path('<int:post_id>/update/', viewsCRUD.post_update, name='post_update'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path(
         '<int:post_id>/comment/', views.post_comment, name='post_comment'
