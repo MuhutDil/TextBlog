@@ -18,6 +18,7 @@ urlpatterns = [
         name='post_detail',
     ),
     path('<int:post_id>/update/', viewsCRUD.post_update, name='post_update'),
+    path('<int:post_id>/delete/', viewsCRUD.post_delete, name='post_delete'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path(
         '<int:post_id>/comment/', views.post_comment, name='post_comment'

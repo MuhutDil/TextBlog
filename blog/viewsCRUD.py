@@ -84,5 +84,13 @@ def post_update(request, post_id):
 @login_required
 @user_is_author
 def post_delete(request, post_id):
-    pass
+    post = get_object_or_404(
+        Post,
+        id=post_id,
+        status=Post.Status.PUBLISHED
+    )
+    if request.method == "POST":
+        post.delete()
+        return redirect('/')
+    return render(request, 'blog/confirm_delete.html', {'post': post})
 
