@@ -16,10 +16,12 @@ def user_is_author(view_func):
         
         # Check if the logged-in user is the author
         if post.author == request.user:
+            kwargs['post'] = post
             return view_func(request, *args, **kwargs)
         else:
-            messages.error(request, "You don't have permission to edit this post!")
-            return redirect(post.get_absolute_url())
+            raise PermissionDenied
+            # messages.error(request, "You don't have permission to edit this post!")
+            # return redirect(post.get_absolute_url())
             
     return _wrapped_view
 
@@ -49,17 +51,10 @@ def post_create(request):
     )
 
 
-@login_required
 @user_is_author
-def post_update(request, post_id):
-    # Retrieve post by id
-    post = get_object_or_404(
-        Post,
-        id=post_id,
-    )
+def post_update(request, post_id, post=None):
     form = PostForm(request.POST or None, instance=post)
     if request.method == 'POST':
-        # form = PostUpdateForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Your post has been updated!")
@@ -74,13 +69,8 @@ def post_update(request, post_id):
     )
 
 
-@login_required
 @user_is_author
-def post_delete(request, post_id):
-    post = get_object_or_404(
-        Post,
-        id=post_id,
-    )
+def post_delete(request, post_id, post=None):
     if request.method == "POST":
         post.delete()
         messages.success(request, "Your post has been deleted!")
