@@ -30,7 +30,7 @@ def user_is_author(view_func):
 def post_create(request):
     form = PostForm(request.POST or None)
     if request.method == 'POST':
-        slug = slugify(request.POST['title'])
+        slug = slugify(request.POST.get('title'))
         # Same published post in this data doen't found
         if not Post.published.filter(
             slug=slug,
