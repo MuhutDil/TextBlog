@@ -12,7 +12,11 @@
         </a>{% if not forloop.last %}, {% endif %}
       {% endfor %}
   <p class="date">
-    Published {{ post.publish }} by {{ post.author }}
+    <!-- Published {{ post.publish }} by {{ post.author }} -->
+    Published {{ post.publish }} by 
+    <a href="{{ post.author.get_absolute_url }}">
+      {{ post.author }}
+    </a>
   </p>
   {{ post.body|markdown }}
 
