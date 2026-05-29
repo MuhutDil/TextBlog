@@ -4,8 +4,6 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from django.http import HttpResponse, JsonResponse
 
 from .forms import CustomUserCreationForm
 from blog.models import Post
@@ -32,6 +30,18 @@ def user_detail(request, username):
         'users/detail.html',
         {
             'profile': user,
+            'posts': posts,
+        },
+    )
+
+@login_required
+def user_draft(request):
+    posts = Post.objects.filter(author=request.user, status='DF')
+    return render(
+        request,
+        'users/detail.html',
+        {
+            'profile': request.user,
             'posts': posts,
         },
     )
