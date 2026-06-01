@@ -8,8 +8,8 @@ from unittest.mock import Mock, patch
 from django.contrib import messages
  
 from blog.models import Post
-from blog.formsCRUD import PostForm
-from blog.viewsCRUD import user_is_author, post_create, post_update, post_delete
+from blog.forms import PostForm
+from blog.views import user_is_author, post_create, post_update, post_delete
 
 from django.contrib.messages.storage.fallback import FallbackStorage
 

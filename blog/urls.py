@@ -1,13 +1,13 @@
 from django.urls import path
 
-from . import views, viewsCRUD
+from . import views
 
 app_name = 'blog'
 
 
 urlpatterns = [
     path('', views.post_list, name='home'),
-    path('create/', viewsCRUD.post_create, name='post_create'),
+    path('create/', views.post_create, name='post_create'),
     # path('', views.PostListView.as_view(), name='post_list'),
     path(
         'tag/<slug:tag_slug>/', views.post_list, name='post_list_by_tag'
@@ -17,8 +17,9 @@ urlpatterns = [
         views.post_detail,
         name='post_detail',
     ),
-    path('<int:post_id>/update/', viewsCRUD.post_update, name='post_update'),
-    path('<int:post_id>/delete/', viewsCRUD.post_delete, name='post_delete'),
+    path('draft/<slug:post>', views.draft_detail, name='draft_detail'),
+    path('<int:post_id>/update/', views.post_update, name='post_update'),
+    path('<int:post_id>/delete/', views.post_delete, name='post_delete'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
     path(
         '<int:post_id>/comment/', views.post_comment, name='post_comment'

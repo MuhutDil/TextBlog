@@ -69,7 +69,7 @@ class Post(models.Model):
             )
         else:
             return reverse(
-                'draft_detail',
+                'blog:draft_detail',
                 args=[
                     self.slug,
                 ],

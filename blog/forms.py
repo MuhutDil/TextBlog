@@ -1,6 +1,25 @@
 from django import forms
+from taggit.models import Tag
 
-from .models import Comment
+from .models import Comment, Post
+
+
+class RestrictedTagField(forms.ModelMultipleChoiceField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('queryset', Tag.objects.all())
+        super().__init__(*args, **kwargs)
+
+
+class PostForm(forms.ModelForm):
+    tags = RestrictedTagField(
+        queryset=Tag.objects.all(),
+        widget=forms.SelectMultiple,
+        # widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    class Meta:
+        model = Post
+        fields = ['title', 'body', 'status', 'tags',]
 
 
 class EmailPostForm(forms.Form):
