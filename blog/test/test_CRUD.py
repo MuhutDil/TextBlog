@@ -200,7 +200,7 @@ class PostUpdateViewTests(TestCase):
         )
         cls.post = Post.objects.create(
             title='Original Title',
-            slug='original-title',
+            # slug='original-title',
             body='Original content',
             author=cls.author,
             status='PB',
@@ -360,7 +360,7 @@ class IntegrationTests(TestCase):
         post_data = {
             'title': 'Lifecycle Post',
             'body': 'Initial content',
-            'slug': 'lifecycle-post',
+            # 'slug': 'lifecycle-post',
             'status': 'PB',
             'author': self.user
         }
@@ -374,7 +374,7 @@ class IntegrationTests(TestCase):
         updated_data = {
             'title': 'Updated Lifecycle Post',
             'body': 'Updated content',
-            'slug': 'updated-lifecycle',
+            # 'slug': 'updated-lifecycle',
             'status': 'PB',
         }
         response = self.client.post(update_url, updated_data, follow=True)

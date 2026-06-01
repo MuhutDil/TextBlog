@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 from taggit.managers import TaggableManager
 
 
@@ -31,7 +32,7 @@ class Post(models.Model):
         choices=Status,
         default=Status.DRAFT
     )
-    publish = models.DateTimeField(default=timezone.now)
+    publish = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     body = models.TextField()
@@ -44,21 +45,38 @@ class Post(models.Model):
         ordering = ['-publish']
         indexes = [
             models.Index(fields=['-publish']),
-        ]
-    
-    def __str__(self):
-        return self.title       
-    
+        ] 
+
+    def save(self, *args, **kwargs):
+        if self.status == 'PB':
+            self.publish = timezone.now()
+        else:
+            self.publish = None
+        self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+
     def get_absolute_url(self):
-        return reverse(
-            'blog:post_detail',
-            args=[
-                self.publish.year,
-                self.publish.month,
-                self.publish.day,
-                self.slug,
-            ],
-        )
+        if self.status == 'PB':
+            return reverse(
+                'blog:post_detail',
+                args=[
+                    self.publish.year,
+                    self.publish.month,
+                    self.publish.day,
+                    self.slug,
+                ],
+            )
+        else:
+            return reverse(
+                'draft_detail',
+                args=[
+                    self.slug,
+                ],
+            )
+        
+    def __str__(self):
+        return self.title 
 
 
 class Comment(models.Model):

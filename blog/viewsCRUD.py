@@ -39,7 +39,6 @@ def post_create(request):
             if form.is_valid():
                 post = form.save(commit=False)
                 post.author = request.user
-                post.slug = slug
                 post.save()
                 form.save_m2m()
                 messages.success(request, "Your post has been created!")

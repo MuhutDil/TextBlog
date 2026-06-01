@@ -12,10 +12,14 @@
         </a>{% if not forloop.last %}, {% endif %}
       {% endfor %}
   <p class="date">
-    Published {{ post.publish }} by 
-    <a href="{{ post.author.get_absolute_url }}">
-      {{ post.author }}
-    </a>
+    {% if post.publish %}
+      Published {{ post.publish }} by 
+      <a href="{{ post.author.get_absolute_url }}">
+        {{ post.author }}
+      </a>
+    {% else %}
+      Draft Post
+    {% endif %}
   </p>
   {{ post.body|markdown }}
 

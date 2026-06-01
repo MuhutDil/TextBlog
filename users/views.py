@@ -45,3 +45,17 @@ def user_draft(request):
             'posts': posts,
         },
     )
+
+def draft_detail(request, post):
+    post = get_object_or_404(
+        Post,
+        slug=post,
+        status=Post.Status.DRAFT,
+    )
+    return render(
+        request,
+        'blog/detail.html',
+        {
+            'post': post,
+        },
+    )
