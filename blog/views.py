@@ -12,7 +12,7 @@ from functools import wraps
 from taggit.models import Tag
 
 from .forms import CommentForm, EmailPostForm, SearchForm, PostForm
-from .models import Post
+from .models import Post, PostAlreadyExist, DraftAlreadyExist
 
 
 POSTS_ON_PAGE = 3
@@ -38,12 +38,7 @@ def user_is_author(view_func):
 def post_create(request):
     form = PostForm(request.POST or None)
     if request.method == 'POST':
-        slug = slugify(request.POST.get('title'))
-        # Same published post in this data doen't found
-        if not Post.published.filter(
-            slug=slug,
-            publish__date=timezone.localdate(),
-        ).exists():
+        try:
             if form.is_valid():
                 post = form.save(commit=False)
                 post.author = request.user
@@ -51,7 +46,8 @@ def post_create(request):
                 form.save_m2m()
                 messages.success(request, "Your post has been created!")
                 return redirect(post.get_absolute_url())
-        messages.error(request, "A post with the same title was already published today.")
+        except (PostAlreadyExist, DraftAlreadyExist) as e:
+            messages.error(request, str(e))
     
     return render(
         request,
@@ -125,10 +121,13 @@ def post_detail(request, year, month, day, post):
 def post_update(request, post_id, post=None):
     form = PostForm(request.POST or None, instance=post)
     if request.method == 'POST':
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Your post has been updated!")
-            return redirect(post.get_absolute_url())
+        try:
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Your post has been updated!")
+                return redirect(post.get_absolute_url())
+        except (PostAlreadyExist, DraftAlreadyExist) as e:
+            messages.error(request, str(e))
     return render(
         request,
         'blog/update.html',
@@ -146,12 +145,13 @@ def post_delete(request, post_id, post=None):
         return redirect('/')
     return render(request, 'blog/confirm_delete.html', {'post': post})
 
-@user_is_author
+
 def draft_detail(request, post):
     post = get_object_or_404(
         Post,
         slug=post,
         status=Post.Status.DRAFT,
+        author=request.user,
     )
     return render(
         request,

@@ -6,6 +6,18 @@ from django.utils.text import slugify
 from taggit.managers import TaggableManager
 
 
+class PostAlreadyExist(Exception):
+    def __init__(self):
+        self.message = "A post with the same title was already published today."
+        super().__init__(self.message)
+    
+
+class DraftAlreadyExist(Exception):
+    def __init__(self):
+        self.message = "You already have a draft post with same title."
+        super().__init__(self.message)
+
+
 class PublishedManager(models.Manager):
     def get_queryset(self):
         return (
@@ -48,11 +60,21 @@ class Post(models.Model):
         ] 
 
     def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
         if self.status == 'PB':
+            if Post.published.filter(
+            slug=self.slug,
+            publish__date=timezone.localdate(),
+            ).exists():
+                raise PostAlreadyExist
             self.publish = timezone.now()
         else:
+            if Post.objects.filter(
+            slug=self.slug,
+            author=self.author,
+            ).exists():
+                raise DraftAlreadyExist
             self.publish = None
-        self.slug = slugify(self.title)
         super().save(*args, **kwargs)
 
 
