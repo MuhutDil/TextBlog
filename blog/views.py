@@ -5,8 +5,6 @@ from django.views.decorators.http import require_POST
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
-from django.utils import timezone
-from django.utils.text import slugify
 from django.contrib import messages
 from functools import wraps
 from taggit.models import Tag
@@ -20,6 +18,23 @@ COUNT_SIMILAR_POST = 4
 
 
 def user_is_author(view_func):
+    """
+    Decorator to restrict view access to the author of a blog post.
+    
+    This decorator retrieves a Post object by its ID from the URL kwargs,
+    checks if the currently logged-in user is the author of that post,
+    and either allows access or redirects with an error message.
+    
+    Args:
+        view_func: The view function to be decorated.
+        
+    Returns:
+        function: The wrapped view function that includes authorization logic.
+        
+    Behavior:
+        - If user is author: passes the post object as a keyword argument and calls the view
+        - If user is not author: displays error message and redirects to the post detail page
+    """
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         post = get_object_or_404(Post, id=kwargs['post_id'])
@@ -36,16 +51,30 @@ def user_is_author(view_func):
 
 @login_required
 def post_create(request):
+    """
+    Create a new blog post.
+    
+    This view handles both GET and POST requests for creating a new post.
+    For GET requests, it displays an empty form. For POST requests, it validates
+    the form data, saves the post with the current user as author, and handles
+    duplicate post/draft exceptions.
+    
+    Args:
+        request: HTTP request object.
+        
+    Returns:
+        HttpResponse: Renders the post creation form on GET or validation errors,
+                     or redirects to the post detail page on successful creation.
+    """
     form = PostForm(request.POST or None)
-    if request.method == 'POST':
+    if request.method == 'POST' and form.is_valid():
         try:
-            if form.is_valid():
-                post = form.save(commit=False)
-                post.author = request.user
-                post.save()
-                form.save_m2m()
-                messages.success(request, "Your post has been created!")
-                return redirect(post.get_absolute_url())
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            form.save_m2m()
+            messages.success(request, "Your post has been created!")
+            return redirect(post.get_absolute_url())
         except (PostAlreadyExist, DraftAlreadyExist) as e:
             messages.error(request, str(e))
     
@@ -56,6 +85,16 @@ def post_create(request):
     )
 
 def post_list(request, tag_slug=None):
+    """
+    Display a paginated list of published blog posts, optionally filtered by tag.
+    
+    Args:
+        request: HTTP request object.
+        tag_slug: Optional slug string for filtering posts by a specific tag.
+        
+    Returns:
+        HttpResponse: Renders the blog list template with paginated posts and optional tag.
+    """
     post_list = Post.published.all()
     tag = None
     if tag_slug:
@@ -82,6 +121,23 @@ def post_list(request, tag_slug=None):
 
 
 def post_detail(request, year, month, day, post):
+    """
+    Display the detailed view of a single published blog post.
+    
+    This view retrieves a published post based on its publication date and slug,
+    displays its active comments, and shows a list of similar posts based on tags.
+    
+    Args:
+        request: HTTP request object.
+        year: Publication year of the post.
+        month: Publication month of the post.
+        day: Publication day of the post.
+        post: Slug of the post.
+        
+    Returns:
+        HttpResponse: Renders the post detail template with post, comments,
+                     comment form, and similar posts.
+    """
     post = get_object_or_404(
         Post,
         status=Post.Status.PUBLISHED,
@@ -119,13 +175,28 @@ def post_detail(request, year, month, day, post):
 
 @user_is_author
 def post_update(request, post_id, post=None):
+    """
+    Update an existing blog post.
+    
+    This view is restricted to the post author via the @user_is_author decorator.
+    It displays a form pre-populated with the post's current data and handles
+    form submission for updating the post.
+    
+    Args:
+        request: HTTP request object.
+        post_id: ID of the post to be updated.
+        post: Post object injected by the user_is_author decorator.
+        
+    Returns:
+        HttpResponse: Renders the update form on GET, redirects to post detail
+                     on successful update, or redisplays form with errors.
+    """
     form = PostForm(request.POST or None, instance=post)
-    if request.method == 'POST':
+    if request.method == 'POST' and form.is_valid():
         try:
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Your post has been updated!")
-                return redirect(post.get_absolute_url())
+            form.save()
+            messages.success(request, "Your post has been updated!")
+            return redirect(post.get_absolute_url())
         except (PostAlreadyExist, DraftAlreadyExist) as e:
             messages.error(request, str(e))
     return render(
@@ -139,6 +210,22 @@ def post_update(request, post_id, post=None):
 
 @user_is_author
 def post_delete(request, post_id, post=None):
+    """
+    Delete an existing blog post.
+    
+    This view is restricted to the post author via the @user_is_author decorator.
+    On GET request, it displays a confirmation page. On POST request, it deletes
+    the post and redirects to the homepage.
+    
+    Args:
+        request: HTTP request object.
+        post_id: ID of the post to be deleted.
+        post: Post object injected by the user_is_author decorator.
+        
+    Returns:
+        HttpResponse: Renders confirmation template on GET, redirects to homepage
+                     on successful deletion.
+    """
     if request.method == "POST":
         post.delete()
         messages.success(request, "Your post has been deleted!")
@@ -147,6 +234,19 @@ def post_delete(request, post_id, post=None):
 
 
 def draft_detail(request, post):
+    """
+    Display a draft post for the author.
+    
+    This view allows the author to view their draft posts before publishing.
+    Only shows drafts belonging to the currently logged-in user.
+    
+    Args:
+        request: HTTP request object.
+        post: Slug of the draft post.
+        
+    Returns:
+        HttpResponse: Renders the post detail template for the draft post.
+    """
     post = get_object_or_404(
         Post,
         slug=post,
@@ -163,6 +263,20 @@ def draft_detail(request, post):
 
 
 def post_share(request, post_id):
+    """
+    Handle email sharing of a blog post.
+    
+    This view displays a form for users to share a post via email.
+    When the form is submitted, it sends an email with the post link
+    to the specified recipient.
+    
+    Args:
+        request: HTTP request object.
+        post_id: ID of the post to be shared.
+        
+    Returns:
+        HttpResponse: Renders the share template with form and success status.
+    """
     # Retrieve post by id
     post = get_object_or_404(
         Post,
@@ -210,6 +324,20 @@ def post_share(request, post_id):
 
 @require_POST
 def post_comment(request, post_id):
+    """
+    Handle comment submission on a blog post.
+    
+    This view processes POST requests only. It validates the comment form,
+    associates the comment with the current user and post, and saves it to
+    the database.
+    
+    Args:
+        request: HTTP request object (must be POST).
+        post_id: ID of the post being commented on.
+        
+    Returns:
+        HttpResponse: Renders the comment template with the submitted comment.
+    """
     post = get_object_or_404(
         Post,
         id=post_id,
@@ -238,6 +366,19 @@ def post_comment(request, post_id):
     )
 
 def post_search(request):
+    """
+    Search for blog posts using trigram similarity on titles.
+    
+    This view uses PostgreSQL's trigram similarity to find posts with titles
+    similar to the search query. Results are filtered to show only those with
+    a similarity score above 0.1, ordered by highest similarity first.
+    
+    Args:
+        request: HTTP request object containing optional 'query' parameter.
+        
+    Returns:
+        HttpResponse: Renders the search template with form, query, and results.
+    """
     form = SearchForm()
     query = None
     results = []

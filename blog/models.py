@@ -7,19 +7,41 @@ from taggit.managers import TaggableManager
 
 
 class PostAlreadyExist(Exception):
+    """
+    Exception raised when attempting to publish a second post with the same title on the same day.
+    
+    This exception prevents duplicate published posts from being created on the same date.
+    """
     def __init__(self):
         self.message = "A post with the same title was already published today."
         super().__init__(self.message)
     
 
 class DraftAlreadyExist(Exception):
+    """
+    Exception raised when attempting to create a second draft with the same title.
+    
+    This exception prevents duplicate draft posts from being created by the same author.
+    """
     def __init__(self):
         self.message = "You already have a draft post with same title."
         super().__init__(self.message)
 
 
 class PublishedManager(models.Manager):
+    """
+    Custom model manager that returns only published posts.
+    
+    This manager provides a filtered queryset containing only posts with
+    status set to PUBLISHED, simplifying queries for published content.
+    """
     def get_queryset(self):
+        """
+        Return queryset filtered to only include published posts.
+        
+        Returns:
+            QuerySet: Queryset containing only posts with PUBLISHED status.
+        """
         return (
             super().get_queryset().filter(status=Post.Status.PUBLISHED)
         )
@@ -60,25 +82,60 @@ class Post(models.Model):
         ] 
 
     def save(self, *args, **kwargs):
+        """
+        Override the save method to handle slug generation and duplicate prevention.
+        
+        This method generates a slug from the title, then checks for duplicates:
+        - For published posts: Prevents duplicate titles on the same date
+        - For draft posts: Prevents duplicate drafts by the same author
+        
+        It also sets the publish timestamp to now() when a post is published,
+        or sets it to None when a post is saved as a draft.
+        
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+            
+        Raises:
+            PostAlreadyExist: If a published post with same slug and date exists.
+            DraftAlreadyExist: If a draft with same slug and author exists.
+        """
         self.slug = slugify(self.title)
         if self.status == 'PB':
-            if Post.published.filter(
-            slug=self.slug,
-            publish__date=timezone.localdate(),
-            ).exists():
-                raise PostAlreadyExist
-            self.publish = timezone.now()
+            self._check_published_dublicate()
+            self.publish = self.publish or timezone.now()
         else:
-            if Post.objects.filter(
-            slug=self.slug,
-            author=self.author,
-            ).exists():
-                raise DraftAlreadyExist
+            self._check_draft_dublicate()
             self.publish = None
         super().save(*args, **kwargs)
 
+    def _check_published_dublicate(self):
+        if Post.published.filter(
+            slug=self.slug,
+            publish__date=timezone.localdate(),
+            ).exclude(id=self.id).exists():
+                raise PostAlreadyExist
+
+    def _check_draft_dublicate(self):
+        if Post.objects.filter(
+            slug=self.slug,
+            author=self.author,
+            status=Post.Status.DRAFT
+            ).exclude(id=self.id).exists():
+                raise DraftAlreadyExist
+        
 
     def get_absolute_url(self):
+        """
+        Generate the canonical URL for this post.
+        
+        Returns a URL string that points to either the published post detail
+        page (including date components) or the draft detail page based on
+        the post's current status.
+        
+        Returns:
+            str: URL path to the post's detail view.
+        """
         if self.status == 'PB':
             return reverse(
                 'blog:post_detail',

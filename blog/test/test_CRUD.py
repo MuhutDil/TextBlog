@@ -350,17 +350,14 @@ class IntegrationTests(TestCase):
         )
         self.client.login(username='testuser', password='testpass123')
  
-    @patch('blog.views.Post.published')
-    def test_full_post_lifecycle(self, mock_published):
+    def test_full_post_lifecycle(self):
         """Test complete post lifecycle: create, update, delete"""
-        mock_published.filter.return_value.exists.return_value = False
         
         # 1. Create a post
         create_url = reverse('blog:post_create')
         post_data = {
             'title': 'Lifecycle Post',
             'body': 'Initial content',
-            # 'slug': 'lifecycle-post',
             'status': 'PB',
             'author': self.user
         }
