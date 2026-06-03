@@ -233,6 +233,7 @@ def post_delete(request, post_id, post=None):
     return render(request, 'blog/confirm_delete.html', {'post': post})
 
 
+@login_required
 def draft_detail(request, post):
     """
     Display a draft post for the author.
@@ -323,6 +324,7 @@ def post_share(request, post_id):
     )
 
 @require_POST
+@login_required
 def post_comment(request, post_id):
     """
     Handle comment submission on a blog post.
