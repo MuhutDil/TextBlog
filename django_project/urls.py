@@ -29,6 +29,7 @@ urlpatterns = [
     path('', include('django.contrib.auth.urls')),
     path('', include('users.urls')),
     path('', include('blog.urls', namespace='blog')),
+    path('__debug__', include('debug_toolbar.urls')),
     path(
         'sitemap.xml',
         sitemap,
