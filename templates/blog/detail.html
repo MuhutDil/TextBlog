@@ -20,6 +20,12 @@
     {% else %}
       Draft Post
     {% endif %}
+
+    {% if total_views %}
+      <span class="count">
+        {{ total_views }} view{{ total_views|pluralize }}
+      </span>
+    {% endif %}
   </p>
   {{ post.body|markdown }}
 

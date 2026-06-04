@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from functools import wraps
 from taggit.models import Tag
+import redis
+from django.conf import settings
 
 from .forms import CommentForm, EmailPostForm, SearchForm, PostForm
 from .models import Post, PostAlreadyExist, DraftAlreadyExist
@@ -15,6 +17,12 @@ from .models import Post, PostAlreadyExist, DraftAlreadyExist
 
 POSTS_ON_PAGE = 3
 COUNT_SIMILAR_POST = 4
+
+r = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB,
+)
 
 
 def user_is_author(view_func):
@@ -146,6 +154,8 @@ def post_detail(request, year, month, day, post):
         publish__month=month,
         publish__day=day,
     )
+    total_views = r.incr(f'post:{post.id}:views')
+    r.zincrby("posts_ranking", 1, post.id)
     # List of active comments for this post
     comments = post.comments.filter(active=True)
     # Form for users to comment
@@ -168,6 +178,7 @@ def post_detail(request, year, month, day, post):
             'comments': comments,
             'form': form,
             'similar_posts': similar_posts,
+            'total_views': total_views,
         },
     )
 
@@ -405,4 +416,21 @@ def post_search(request):
             'query': query,
             'results': results
         },
+    )
+
+def post_ranking(request):
+    post_ranking = r.zrange(
+        'posts_ranking', 0, -1, desc=True
+    )[:10]
+    post_ranking_ids = [int(id) for id in post_ranking]
+    most_viewed = list(
+        Post.published.filter(
+            id__in=post_ranking_ids
+        )
+    )
+    most_viewed.sort(key=lambda x: post_ranking_ids.index(x.id))
+    return render(
+        request,
+        'blog/ranking.html',
+        {'section': 'images', 'most_viewed': most_viewed},
     )
