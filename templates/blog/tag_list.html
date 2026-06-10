@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Tags{% endblock %}
+
+{% block content %}
+  <h1>Tags</h1>
+  <p><a href="{% url "blog:tag_create" %}">Add new tag</a></p>
+  
+  {% for tag in tags %}
+  <ul><a href="{% url "blog:post_list_by_tag" tag.slug %}">
+    {{ tag.name }}</ul>
+    
+  {% endfor %}
+
+
+{% endblock %}

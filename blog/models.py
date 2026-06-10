@@ -3,7 +3,6 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
-from taggit.managers import TaggableManager
 
 
 class PostAlreadyExist(Exception):
@@ -28,6 +27,12 @@ class DraftAlreadyExist(Exception):
         super().__init__(self.message)
 
 
+class TagAlreadyExist(Exception):
+    def __init__(self):
+        self.message = "Tag already exist."
+        super().__init__(self.message)
+
+
 class PublishedManager(models.Manager):
     """
     Custom model manager that returns only published posts.
@@ -46,7 +51,24 @@ class PublishedManager(models.Manager):
             super().get_queryset().filter(status=Post.Status.PUBLISHED)
         )
 
-# Create your models here.
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(max_length=50, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        if Tag.objects.filter(
+            slug=self.slug,
+            ).exclude(id=self.id).exists():
+            raise TagAlreadyExist
+        self.name = self.name.capitalize()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
 class Post(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'DF', 'Draft'
@@ -71,9 +93,9 @@ class Post(models.Model):
     updated = models.DateTimeField(auto_now=True)
     body = models.TextField()
 
-    objects = models.Manager()  # The default manager.
-    published = PublishedManager()  # Our custom manager.
-    tags = TaggableManager()
+    objects = models.Manager()
+    published = PublishedManager()
+    tags = models.ManyToManyField(Tag, blank=True, related_name="posts")
 
     class Meta:
         ordering = ['-publish']

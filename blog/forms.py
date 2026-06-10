@@ -1,7 +1,6 @@
 from django import forms
-from taggit.models import Tag
 
-from .models import Comment, Post
+from .models import Comment, Post, Tag
 
 
 class RestrictedTagField(forms.ModelMultipleChoiceField):
@@ -20,6 +19,12 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'body', 'status', 'tags',]
+
+
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ['name']
 
 
 class EmailPostForm(forms.Form):

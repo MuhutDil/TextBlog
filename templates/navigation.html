@@ -1,0 +1,28 @@
+<div id="sidebar">
+    <h2><a href="{% url 'blog:post_list' %}">Blog</a></h2>
+
+    <li>
+      <ul><a href="{% url 'blog:post_search' %}">Search post</a></ul>
+      <ul><a href="{% url 'blog:tag_list' %}">Tags</a></ul>
+      <ul><a href="{% url 'blog:ranking' %}">Ranking</a></ul>
+    </li>
+
+
+    {% if user.is_authenticated %}
+      <h3>Hello, <a href="{{ user.get_absolute_url }}">{{ user.username }}</a>!</h3>
+      <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+      </form>
+      <p>
+        <a href="{% url 'draft' %}">Your draft post</a>
+      </p>
+    {% else %}
+      <h3>Welcome! Please <a href="{% url 'signup' %}">Sign Up</a> or <a href="{% url 'login' %}">Log In</a>.</h3>
+    {% endif %}
+
+    
+    
+
+    
+  </div>

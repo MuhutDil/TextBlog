@@ -7,12 +7,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from functools import wraps
-from taggit.models import Tag
 import redis
 from django.conf import settings
 
-from .forms import CommentForm, EmailPostForm, SearchForm, PostForm
-from .models import Post, PostAlreadyExist, DraftAlreadyExist
+from .forms import CommentForm, EmailPostForm, SearchForm, PostForm, TagForm
+from .models import Post, Tag, PostAlreadyExist, DraftAlreadyExist, TagAlreadyExist
 
 
 POSTS_ON_PAGE = 3
@@ -433,4 +432,32 @@ def post_ranking(request):
         request,
         'blog/ranking.html',
         {'section': 'images', 'most_viewed': most_viewed},
+    )
+
+def tag_list(request):
+    tags = Tag.objects.all()
+    return render(
+        request,
+        'blog/tag_list.html',
+        {
+            'tags': tags,
+        },
+    )
+
+
+@login_required
+def tag_create(request):
+    form = TagForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            form.save()
+            messages.success(request, "Tag has been created!")
+            return redirect('blog:tag_list')
+        except TagAlreadyExist as e:
+            messages.error(request, str(e))
+    
+    return render(
+        request,
+        'blog/tag_create.html',
+        {'form': form},
     )

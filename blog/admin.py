@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Comment, Post
+from .models import Comment, Post, Tag
 
 
 @admin.register(Post)
@@ -19,3 +19,6 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['commented_by', 'post', 'created', 'active']
     list_filter = ['active', 'created', 'updated']
     search_fields = ['commented_by', 'body']
+
+
+admin.site.register(Tag)

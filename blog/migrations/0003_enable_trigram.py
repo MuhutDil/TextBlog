@@ -5,7 +5,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('blog', '0004_post_tags'),
+        ('blog', '0002_alter_tag_name'),
     ]
 
     operations = [

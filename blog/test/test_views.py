@@ -2,11 +2,8 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.utils import timezone
-from datetime import date
-from taggit.models import Tag
  
-from blog.models import Post, Comment
+from blog.models import Post, Comment, Tag
 from blog.forms import CommentForm, EmailPostForm, SearchForm, PostForm
 
 User = get_user_model()
@@ -247,9 +244,9 @@ class PostListViewTests(TestCase):
     def test_post_list_filter_by_tag(self):
         """Test filtering posts by tag."""
         post = Post.published.first()
-        post.tags.add('python')
-        
-        tag = Tag.objects.get(slug='python')
+        tag = Tag.objects.create(name='python')
+        post.tags.add(tag)
+
         response = self.client.get(reverse('blog:post_list_by_tag', args=[tag.slug]))
         
         self.assertEqual(response.status_code, 200)
@@ -336,9 +333,12 @@ class PostDetailViewTests(TestCase):
             author=self.user,
             status=Post.Status.PUBLISHED
         )
+        tag = Tag.objects.create(
+            name='python'
+        )
         
-        self.post.tags.add('python')
-        post2.tags.add('python')
+        self.post.tags.add(tag)
+        post2.tags.add(tag)
         
         response = self.client.get(self.url)
         self.assertIn('similar_posts', response.context)
