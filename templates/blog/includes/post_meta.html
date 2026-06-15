@@ -1,0 +1,25 @@
+<p class="text-muted">
+  {% with post.tags.all as tags %}
+    {% if tags %}
+      Tags:
+      {% for tag in tags %}
+        <a class="text-decoration-none" href="{% url "blog:post_list_by_tag" tag.slug %}">
+          {{ tag.name }}
+        </a>{% if not forloop.last %}, {% endif %}
+      {% endfor %}
+    {% else %}
+      No tags
+    {% endif %}
+  {% endwith %}
+</p>
+
+<p class="text-muted">
+  {% if post.publish %}
+    Published {{ post.publish }} by 
+    <a href="{{ post.author.get_absolute_url }}">
+      {{ post.author }}
+    </a>
+  {% else %}
+    Draft Post
+  {% endif %}
+</p>

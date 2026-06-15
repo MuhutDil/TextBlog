@@ -3,7 +3,7 @@
 {% block title %}{{ post.title }}{% endblock %}
 
 {% block content %}
-  <h1 class="display-4">{{ post.title }}
+  <h1 class="card-title">{{ post.title }}
   <button type="button" class="btn btn-outline-dark">
     {% if total_views %}
       {{ total_views }} view{{ total_views|pluralize }}
@@ -11,34 +11,13 @@
   </button>
   </h1>
 
-  <p class="tags lead mb-0">
-    {% with post.tags.all as tags %}
-      {% if tags %}
-        Tags:
-        {% for tag in tags %}
-          <a class="text-decoration-none" href="{% url "blog:post_list_by_tag" tag.slug %}">
-            {{ tag.name }}
-          </a>{% if not forloop.last %}, {% endif %}
-        {% endfor %}
-      {% else %}
-        No tags
-      {% endif %}
-    {% endwith %}
-  </p>
+  {% include "blog/includes/post_meta.html" with post=post %}
 
-  <p class="blog-post-meta lead mb-0">
-    {% if post.publish %}
-      Published {{ post.publish }} by 
-      <a href="{{ post.author.get_absolute_url }}">
-        {{ post.author }}
-      </a>
-    {% else %}
-      Draft Post
-    {% endif %}
+  <p class="card-text fs-5 text">
+    <p>{{ post.body|linebreaks }}</p>
   </p>
-
-  <fieldset class="border rounded-3 m-2 p-2 text-break col-md-10">
-    <p>{{ post.body }}</p>
+  <fieldset class="border rounded-3 m-2 px-3 card-text fs-5 text col-md-10">
+    
   </fieldset>
 
   <div>
@@ -72,15 +51,19 @@
     </h2>
   {% endwith %}
   {% for comment in comments %}
-    <div class="comment">
-      <p class="info">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h6 class="fw-bold">
         Comment {{ forloop.counter }} by {{ comment.commented_by }}
         {{ comment.created }}
-      </p>
-      {{ comment.body|linebreaks }}
+      </h6>
+      <p>{{ comment.body|linebreaks }}</p>
     </div>
+  </div>
   {% empty %}
     <p>There are no comments yet.</p>
   {% endfor %}
+
   {% include "blog/includes/comment_form.html" %}
+
 {% endblock %}
