@@ -62,7 +62,7 @@ class PostModelTests(TestCase):
                 author=self.user,
                 status=Post.Status.PUBLISHED
             )
-        self.assertIn('already published today', str(context.exception))
+        self.assertIn('already published', str(context.exception))
         
     def test_duplicate_draft_post(self):
         """Test that duplicate draft posts by same author raise exception."""

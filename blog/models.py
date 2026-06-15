@@ -12,7 +12,7 @@ class PostAlreadyExist(Exception):
     This exception prevents duplicate published posts from being created on the same date.
     """
     def __init__(self):
-        self.message = "A post with the same title was already published today."
+        self.message = "A post with the same title was already published in same day."
         super().__init__(self.message)
     
 
@@ -134,7 +134,7 @@ class Post(models.Model):
     def _check_published_dublicate(self):
         if Post.published.filter(
             slug=self.slug,
-            publish__date=timezone.localdate(),
+            publish__date=(self.publish or timezone.localdate()),
             ).exclude(id=self.id).exists():
                 raise PostAlreadyExist
 
