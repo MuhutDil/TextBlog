@@ -367,15 +367,9 @@ def post_comment(request, post_id):
         comment.commented_by = request.user
         # Save the comment to the database
         comment.save()
-    return render(
-        request,
-        'blog/comment.html',
-        {
-            'post': post,
-            'form': form,
-            'comment': comment
-        },
-    )
+        messages.success(request, "Your comment has been published!")
+    return redirect(post.get_absolute_url())
+
 
 def post_search(request):
     """
