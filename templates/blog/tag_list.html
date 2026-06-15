@@ -4,13 +4,18 @@
 
 {% block content %}
   <h1>Tags</h1>
-  <p><a href="{% url "blog:tag_create" %}">Add new tag</a></p>
   
-  {% for tag in tags %}
-  <ul><a href="{% url "blog:post_list_by_tag" tag.slug %}">
-    {{ tag.name }}</ul>
-    
-  {% endfor %}
-
+  <p>
+    <a href="{% url "blog:tag_create" %}" class="btn btn-primary" role="button">Add new tag</a>
+  </p>
+  <ul class="list-group list-group-flush col-md-3">
+    {% for tag in tags %}
+    <li class="list-group-item">
+      <a href="{% url "blog:post_list_by_tag" tag.slug %}">
+        {{ tag.name }}</a>
+    </li>
+    {% endfor %}
+ 
+</ul>
 
 {% endblock %}

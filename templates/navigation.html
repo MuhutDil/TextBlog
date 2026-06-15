@@ -1,28 +1,44 @@
-<div id="sidebar">
-    <h2><a href="{% url 'blog:post_list' %}">Blog</a></h2>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'blog:post_list' %}">Blog</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <li>
-      <ul><a href="{% url 'blog:post_search' %}">Search post</a></ul>
-      <ul><a href="{% url 'blog:tag_list' %}">Tags</a></ul>
-      <ul><a href="{% url 'blog:ranking' %}">Ranking</a></ul>
-    </li>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'blog:post_search' %}">Search post</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'blog:ranking' %}">Ranking</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'blog:tag_list' %}">Tags</a>
+          </li>
+        </ul>
 
-
-    {% if user.is_authenticated %}
-      <h3>Hello, <a href="{{ user.get_absolute_url }}">{{ user.username }}</a>!</h3>
-      <form action="{% url 'logout' %}" method="post">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-      </form>
-      <p>
-        <a href="{% url 'draft' %}">Your draft post</a>
-      </p>
-    {% else %}
-      <h3>Welcome! Please <a href="{% url 'signup' %}">Sign Up</a> or <a href="{% url 'login' %}">Log In</a>.</h3>
-    {% endif %}
-
-    
-    
-
-    
-  </div>
+        <ul class="navbar-nav ml-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link"  href="{{ user.get_absolute_url }}">{{ user.username }}</a>
+            </li>
+            <li class="nav-item">
+              <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Logout</button>
+              </form>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'login' %}">Log In</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'signup' %}">Sign Up</a>
+            </li>
+            {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+  

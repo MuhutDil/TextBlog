@@ -1,0 +1,27 @@
+{% for post in posts %}
+  <hr class="border-primary border-3 opacity-75">
+    <h2>
+      <a class="text-decoration-none" href="{{ post.get_absolute_url }}">
+        {{ post.title }}
+      </a>
+    </h2>
+  <p class="tags">
+    {% with post.tags.all as tags %}
+      {% if tags %}
+        Tags:
+        {% for tag in tags %}
+          <a class="text-decoration-none" href="{% url "blog:post_list_by_tag" tag.slug %}">
+            {{ tag.name }}
+          </a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      {% else %}
+        No tags
+      {% endif %}
+    {% endwith %}
+  </p>
+    <p class="date">
+      Published {{ post.publish }} by {{ post.author }}
+    </p>
+    {{ post.body|truncatechars_html:80 }}
+    
+{% endfor %}

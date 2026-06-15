@@ -1,0 +1,24 @@
+<hr>
+<nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+    {% if page.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="{% querystring page=page.previous_page_number %}">Previous</a>
+    {% endif %}
+
+    {% for num_page in page.paginator.page_range %}
+      {% if num_page == page.number %}
+        <li class="page-item disabled">
+      {% else %}
+        <li class="page-item">
+      {% endif %}
+        <a class="page-link" href="{% querystring page=num_page %}">{{ num_page }}</a>
+        </li>
+      {% endfor %}
+
+    {% if page.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="{% querystring page=page.next_page_number %}">Next</a>
+    {% endif %}
+  </ul>
+</nav>
