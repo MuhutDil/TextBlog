@@ -4,11 +4,11 @@
 
 {% block content %}
   <h1 class="card-title">{{ post.title }}
-  <button type="button" class="btn btn-outline-dark">
-    {% if total_views %}
+  {% if total_views %}
+    <button type="button" class="btn btn-outline-dark">
       {{ total_views }} view{{ total_views|pluralize }}
-    {% endif %}
-  </button>
+    </button>
+  {% endif %}
   </h1>
 
   {% include "blog/includes/post_meta.html" with post=post %}

@@ -5,7 +5,8 @@
 {% block content %}
   <h1>{{ profile.username }}</h1>
   {% if profile.username == user.username %}
-    <a href="{% url 'draft' %}">Your draft post</a>
+    <a href="{% url 'blog:draft' %}">Your draft post</a>
   {% endif %}
   {% include "blog/includes/truncate_post.html" with posts=posts %}
+  {% include "blog/includes/pagination.html" with page=posts %}
 {% endblock %}

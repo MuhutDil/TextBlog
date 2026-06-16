@@ -1,5 +1,6 @@
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.views.decorators.http import require_POST
 from django.db.models import Count
@@ -12,6 +13,9 @@ from django.conf import settings
 
 from .forms import CommentForm, EmailPostForm, SearchForm, PostForm, TagForm
 from .models import Post, Tag, PostAlreadyExist, DraftAlreadyExist, TagAlreadyExist
+
+
+User = get_user_model()
 
 
 POSTS_ON_PAGE = 3
@@ -55,6 +59,21 @@ def user_is_author(view_func):
             return redirect(post.get_absolute_url())
             
     return _wrapped_view
+
+
+def paginate(request, object_list, per_page=POSTS_ON_PAGE):
+    paginator = Paginator(object_list, per_page)
+    page_number = request.GET.get('page', 1)
+    try:
+        objects = paginator.page(page_number)
+    except PageNotAnInteger:
+        # If page_number is not an integer get the first page
+        objects = paginator.page(1)
+    except EmptyPage:
+        # If page_number is out of range get last page of results
+        objects = paginator.page(paginator.num_pages)
+    return objects
+
 
 @login_required
 def post_create(request):
@@ -107,16 +126,7 @@ def post_list(request, tag_slug=None):
     if tag_slug:
         tag = get_object_or_404(Tag, slug=tag_slug)
         post_list = post_list.filter(tags__in=[tag])
-    paginator = Paginator(post_list, POSTS_ON_PAGE)
-    page_number = request.GET.get('page', 1)
-    try:
-        posts = paginator.page(page_number)
-    except PageNotAnInteger:
-        # If page_number is not an integer get the first page
-        posts = paginator.page(1)
-    except EmptyPage:
-        # If page_number is out of range get last page of results
-        posts = paginator.page(paginator.num_pages)
+    posts = paginate(request, post_list)
     return render(
         request,
         'blog/list.html',
@@ -400,6 +410,7 @@ def post_search(request):
                 .filter(similarity__gt=0.1)
                 .order_by('-similarity')
             )
+            results = paginate(request, results)
 
     return render(
         request,
@@ -422,11 +433,12 @@ def post_ranking_view(request):
         )
     )
     most_viewed.sort(key=lambda x: post_ranking_ids.index(x.id))
+    posts = paginate(request, most_viewed)
     return render(
         request,
         'blog/ranking.html',
         {
-            'posts': most_viewed,
+            'posts': posts,
             'switch': 'viewed',
         }
     )
@@ -435,11 +447,12 @@ def post_ranking_comment(request):
     most_commented =  Post.published.annotate(
         total_comments=Count('comments')
     ).filter(total_comments__gt=0).order_by('-total_comments')
+    posts = paginate(request, most_commented)
     return render(
         request,
         'blog/ranking.html',
         {
-            'posts': most_commented,
+            'posts': posts,
             'switch': 'commented',
             }
     )
@@ -470,4 +483,30 @@ def tag_create(request):
         request,
         'blog/tag_create.html',
         {'form': form},
+    )
+
+def user_detail(request, username):
+    user = get_object_or_404(User, username=username, is_active=True)
+    posts = Post.published.filter(author=user)
+    posts = paginate(request, posts)
+    return render(
+        request,
+        'users/detail.html',
+        {
+            'profile': user,
+            'posts': posts,
+        },
+    )
+
+@login_required
+def user_draft(request):
+    posts = Post.objects.filter(author=request.user, status='DF')
+    posts = paginate(request, posts)
+    return render(
+        request,
+        'users/detail.html',
+        {
+            'profile': request.user,
+            'posts': posts,
+        },
     )

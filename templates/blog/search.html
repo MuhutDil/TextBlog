@@ -13,6 +13,7 @@
     </h3>
     <p><a href="{% url "blog:post_search" %}">Search again</a></p>
     {% include "blog/includes/truncate_post.html" with posts=results %}
+    {% include "blog/includes/pagination.html" with page=results %}
     
   {% else %}
     <h1>Search for posts</h1>

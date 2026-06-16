@@ -9,7 +9,7 @@ urlpatterns = [
     path('', views.post_list, name='post_list'),
     path('create/', views.post_create, name='post_create'),
     path('tag/', views.tag_list, name='tag_list'),
-    path('tag/create', views.tag_create, name='tag_create'),
+    path('tag/create/', views.tag_create, name='tag_create'),
     path(
         'tag/<slug:tag_slug>/', views.post_list, name='post_list_by_tag'
     ),
@@ -18,7 +18,6 @@ urlpatterns = [
         views.post_detail,
         name='post_detail',
     ),
-    path('draft/<slug:post>', views.draft_detail, name='draft_detail'),
     path('<int:post_id>/update/', views.post_update, name='post_update'),
     path('<int:post_id>/delete/', views.post_delete, name='post_delete'),
     path('<int:post_id>/share/', views.post_share, name='post_share'),
@@ -28,4 +27,7 @@ urlpatterns = [
     path('search/', views.post_search, name='post_search'),
     path('ranking/view/', views.post_ranking_view, name='ranking'),
     path('ranking/comment/', views.post_ranking_comment, name='ranking_comment'),
+    path('users/<username>/', views.user_detail, name='user_detail'),
+    path('draft/', views.user_draft, name='draft'),
+    path('draft/<slug:post>/', views.draft_detail, name='draft_detail'),
 ]

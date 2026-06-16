@@ -22,4 +22,5 @@
       </li>
   </ul>
     {% include "blog/includes/truncate_post.html" with posts=posts %}
+    {% include "blog/includes/pagination.html" with page=posts %}
 {% endblock %}
