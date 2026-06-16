@@ -1,5 +1,4 @@
 <hr>
-<nav aria-label="Page navigation example">
   <ul class="pagination justify-content-center">
     {% if page.has_previous %}
       <li class="page-item">
@@ -21,4 +20,3 @@
         <a class="page-link" href="{% querystring page=page.next_page_number %}">Next</a>
     {% endif %}
   </ul>
-</nav>

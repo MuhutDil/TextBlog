@@ -26,5 +26,6 @@ urlpatterns = [
         '<int:post_id>/comment/', views.post_comment, name='post_comment'
     ),
     path('search/', views.post_search, name='post_search'),
-    path('ranking/', views.post_ranking, name='ranking'),
+    path('ranking/view/', views.post_ranking_view, name='ranking'),
+    path('ranking/comment/', views.post_ranking_comment, name='ranking_comment'),
 ]

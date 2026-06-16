@@ -411,7 +411,7 @@ def post_search(request):
         },
     )
 
-def post_ranking(request):
+def post_ranking_view(request):
     post_ranking = r.zrange(
         'posts_ranking', 0, -1, desc=True
     )[:10]
@@ -425,7 +425,23 @@ def post_ranking(request):
     return render(
         request,
         'blog/ranking.html',
-        {'section': 'images', 'most_viewed': most_viewed},
+        {
+            'posts': most_viewed,
+            'switch': 'viewed',
+        }
+    )
+
+def post_ranking_comment(request):
+    most_commented =  Post.published.annotate(
+        total_comments=Count('comments')
+    ).filter(total_comments__gt=0).order_by('-total_comments')
+    return render(
+        request,
+        'blog/ranking.html',
+        {
+            'posts': most_commented,
+            'switch': 'commented',
+            }
     )
 
 def tag_list(request):

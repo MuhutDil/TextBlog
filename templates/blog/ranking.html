@@ -4,5 +4,22 @@
 
 {% block content %}
   <h1>Posts ranking</h1>
-    {% include "blog/includes/truncate_post.html" with posts=most_viewed %}
+  <ul class="pagination">
+    {% if switch == "viewed" %}
+        <li class="page-item disabled">
+      {% else %}
+        <li class="page-item">
+      {% endif %}
+        <a class="page-link" href="{% url "blog:ranking" %}">Most Viewed</a>
+      </li>
+    
+    {% if switch == "commented" %}
+      <li class="page-item disabled">
+    {% else %}
+      <li class="page-item">
+    {% endif %}
+        <a class="page-link" href="{% url "blog:ranking_comment" %}">Most Commented</a>
+      </li>
+  </ul>
+    {% include "blog/includes/truncate_post.html" with posts=posts %}
 {% endblock %}
