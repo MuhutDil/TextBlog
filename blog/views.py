@@ -466,10 +466,10 @@ def tag_list(request):
             Tag.objects.annotate(
                 similarity=TrigramSimilarity('name', query),
             )
-            .filter(similarity__gt=0.3)
+            .filter(similarity__gt=0.3).order_by('name')
         )
     else:
-        tags = Tag.objects.all()
+        tags = Tag.objects.all().order_by('name')
     return render(
         request,
         'blog/tag_list.html',

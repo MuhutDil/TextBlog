@@ -7,13 +7,14 @@
   <h1>Tags</h1>
 
   <h3>Search tag</h3>
-
+  <div class="col-md-3">
   <form method="get">
     {{ form|crispy }}
     <input type="submit" class="btn btn-primary" value="Search">
     <a href="{% url "blog:tag_create" %}" class="btn btn-primary" role="button">Add new tag</a>
   </form>
-
+  </div>
+  
   {% if query %}
     <h3>Similar tags to "{{ query }}"</h3>
   {% endif %}
@@ -21,7 +22,7 @@
   <ul class="list-group list-group-flush col-md-3">
     {% for tag in tags %}
     <li class="list-group-item">
-      <a href="{% url "blog:post_list_by_tag" tag.slug %}">
+      <a class="text-decoration-none" href="{% url "blog:post_list_by_tag" tag.slug %}">
         {{ tag.name }}</a>
     </li>
     {% endfor %}
