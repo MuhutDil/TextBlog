@@ -1,13 +1,23 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block title %}Tags{% endblock %}
 
 {% block content %}
   <h1>Tags</h1>
-  
-  <p>
+
+  <h3>Search tag</h3>
+
+  <form method="get">
+    {{ form|crispy }}
+    <input type="submit" class="btn btn-primary" value="Search">
     <a href="{% url "blog:tag_create" %}" class="btn btn-primary" role="button">Add new tag</a>
-  </p>
+  </form>
+
+  {% if query %}
+    <h3>Similar tags to "{{ query }}"</h3>
+  {% endif %}
+
   <ul class="list-group list-group-flush col-md-3">
     {% for tag in tags %}
     <li class="list-group-item">
@@ -15,7 +25,5 @@
         {{ tag.name }}</a>
     </li>
     {% endfor %}
- 
-</ul>
-
+  </ul>
 {% endblock %}

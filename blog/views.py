@@ -458,12 +458,25 @@ def post_ranking_comment(request):
     )
 
 def tag_list(request):
-    tags = Tag.objects.all()
+    form = SearchForm(request.GET or None)
+    query = None
+    if 'query' in request.GET and form.is_valid():
+        query = form.cleaned_data['query']
+        tags = (
+            Tag.objects.annotate(
+                similarity=TrigramSimilarity('name', query),
+            )
+            .filter(similarity__gt=0.3)
+        )
+    else:
+        tags = Tag.objects.all()
     return render(
         request,
         'blog/tag_list.html',
         {
-            'tags': tags,
+            'form': form,
+            'query': query,
+            'tags': tags
         },
     )
 
