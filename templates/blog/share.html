@@ -11,10 +11,12 @@
     </p>
   {% else %}
     <h1>Share "{{ post.title }}" by e-mail</h1>
+    <div class="col-md-7">
     <form method="post" novalidate>
       {{ form|crispy }}
       {% csrf_token %}
       <input type="submit" class="btn btn-primary" value="Send e-mail">
     </form>
+  </div>
   {% endif %}
 {% endblock %}

@@ -10,15 +10,14 @@ class RestrictedTagField(forms.ModelMultipleChoiceField):
 
 
 class PostForm(forms.ModelForm):
-    tags = RestrictedTagField(
-        queryset=Tag.objects.all(),
-        widget=forms.SelectMultiple,
-        # widget=forms.CheckboxSelectMultiple,
-        required=False,
-    )
     class Meta:
         model = Post
         fields = ['title', 'body', 'status', 'tags',]
+        widgets = {
+            'status': forms.RadioSelect(),
+            'tags': forms.CheckboxSelectMultiple(),
+            'body': forms.Textarea(attrs={'rows': 5}),
+        }
 
 
 class TagForm(forms.ModelForm):
@@ -33,13 +32,16 @@ class EmailPostForm(forms.Form):
     to = forms.EmailField()
     comments = forms.CharField(
         required=False,
-        widget=forms.Textarea
+        widget=forms.Textarea(attrs={'rows': 5})
     )
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ['body']
+        widgets = {
+            'body': forms.Textarea(attrs={'rows': 5}),
+        }
 
 class SearchForm(forms.Form):
     query = forms.CharField()
