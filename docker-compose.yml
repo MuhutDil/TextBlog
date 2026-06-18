@@ -4,6 +4,7 @@ services:
     volumes:
       - .:/code
     environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
