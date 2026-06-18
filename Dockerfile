@@ -18,4 +18,4 @@ COPY . .
 # Start migrations and server
 RUN chmod +x /code/entrypoint.sh
 ENTRYPOINT ["/code/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "django_project.wsgi", "-b", "0.0.0.0:8000"]
