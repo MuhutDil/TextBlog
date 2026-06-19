@@ -33,5 +33,4 @@ services:
     plan: free
     maxmemoryPolicy: noeviction
     ipAllowList: []
-    redisVersion: 8
-    
+
