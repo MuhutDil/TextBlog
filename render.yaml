@@ -1,8 +1,8 @@
 databases:
   - name: postgres_db
     plan: free
-    databaseName: postgres
-    user: postgres
+    databaseName: textblogdb
+    user: textblog
     ipAllowList: []
     postgresMajorVersion: 17
 
