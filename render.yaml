@@ -1,10 +1,10 @@
 databases:
   - name: postgres_db
     plan: free
-    database: postgres
+    databaseName: postgres
     user: postgres
     ipAllowList: []
-    postgresVersion: 17
+    postgresMajorVersion: 17
 
 services:
   - type: web
