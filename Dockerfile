@@ -15,7 +15,9 @@ RUN pip install -r requirements.txt
 # Copy project
 COPY . .
 
-# Start migrations and server
+# Start migrations, load exaple data and serve static files
 RUN chmod +x /code/entrypoint.sh
 ENTRYPOINT ["/code/entrypoint.sh"]
+
+# Start server
 CMD ["gunicorn", "django_project.wsgi", "-b", "0.0.0.0:8000"]
