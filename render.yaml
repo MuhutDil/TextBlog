@@ -27,7 +27,7 @@ services:
     ipAllowList: []
     redisVersion: 8
  
-  - type: postgresql
+  - type: postgres
     name: postgres_db
     plan: free
     database: postgres
