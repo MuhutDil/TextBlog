@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}My Blog{% endblock %}
+{% block title %}TextBlog{% endblock %}
 
 {% block content %}
-  <h1>My Blog</h1>  
+  <h1>TextBlog</h1>  
   <a href="{% url "blog:post_create" %}" class="btn btn-primary" role="button">Create new post</a>
   {% include "blog/includes/truncate_post.html" with posts=posts %}
   {% include "blog/includes/pagination.html" with page=posts %}
