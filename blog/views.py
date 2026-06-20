@@ -62,6 +62,25 @@ def user_is_author(view_func):
 
 
 def paginate(request, object_list, per_page=POSTS_ON_PAGE):
+    """
+    Paginate a list or queryset of objects based on the request's page parameter.
+    
+    This helper function handles the common pagination pattern across multiple views.
+    It extracts the page number from the GET parameters, validates it, and returns
+    the appropriate page of objects.
+    
+    Args:
+        request: Django HttpRequest object containing GET parameters
+        object_list: A list, tuple, or QuerySet of objects to paginate
+        per_page (int): Number of items per page. Defaults to POSTS_ON_PAGE setting.
+    
+    Returns:
+        Page: A Django Paginator Page object containing the paginated items
+    
+    Behavior:
+        - Non-integer page numbers return the first page
+        - Out-of-range page numbers return the last page
+    """
     paginator = Paginator(object_list, per_page)
     page_number = request.GET.get('page', 1)
     try:
@@ -422,10 +441,26 @@ def post_search(request):
         },
     )
 
+
 def post_ranking_view(request):
+    """
+    Display most viewed posts based on Redis ranking data.
+    
+    Retrieves post IDs from a Redis sorted set that tracks view counts, fetches
+    the corresponding Post objects from the database, and preserves the original
+    ranking order. Results are paginated for display.
+    
+    Args:
+        request: Django HttpRequest object
+    
+    Returns:
+        HttpResponse: Rendered ranking.html template with:
+            - 'posts': Paginated page of viewed posts
+            - 'switch': String 'viewed' to indicate the ranking type
+    """
     post_ranking = r.zrange(
         'posts_ranking', 0, -1, desc=True
-    )[:10]
+    )
     post_ranking_ids = [int(id) for id in post_ranking]
     most_viewed = list(
         Post.published.filter(
@@ -443,7 +478,23 @@ def post_ranking_view(request):
         }
     )
 
+
 def post_ranking_comment(request):
+    """
+    Display posts ranked by the number of comments they have received.
+    
+    Annotates each published post with a comment count, filters to posts with
+    at least one comment, and orders them from most to least commented. Results
+    are paginated for display.
+    
+    Args:
+        request: Django HttpRequest object
+    
+    Returns:
+        HttpResponse: Rendered ranking.html template with:
+            - 'posts': Paginated page of posts ordered by comment count
+            - 'switch': String 'commented' to indicate the ranking type
+    """
     most_commented =  Post.published.annotate(
         total_comments=Count('comments')
     ).filter(total_comments__gt=0).order_by('-total_comments')
@@ -457,7 +508,25 @@ def post_ranking_comment(request):
             }
     )
 
+ 
 def tag_list(request):
+    """
+    Display a list of tags with optional fuzzy search functionality.
+    
+    If a search query is provided and valid, performs a trigram similarity search
+    on tag names to find matches above a 0.3 threshold. Otherwise, displays all
+    tags alphabetically. The search form is preserved in the context for
+    displaying search input and errors.
+    
+    Args:
+        request: Django HttpRequest object with optional 'query' GET parameter
+    
+    Returns:
+        HttpResponse: Rendered tag_list.html template with:
+            - 'form': SearchForm instance (bound or unbound)
+            - 'query': The search query string or None if no search was performed
+            - 'tags': QuerySet of Tag objects (filtered or all)
+    """
     form = SearchForm(request.GET or None)
     query = None
     if 'query' in request.GET and form.is_valid():
@@ -483,6 +552,25 @@ def tag_list(request):
 
 @login_required
 def tag_create(request):
+    """
+    Handle creation of new tags via a form with validation and error handling.
+    
+    Displays a form for creating new tags. On valid POST submission, saves the
+    tag and redirects to the tag list with a success message. Handles the custom
+    TagAlreadyExist exception by displaying an error message without redirecting.
+    
+    Args:
+        request: Django HttpRequest object (POST for form submission, GET for display)
+    
+    Returns:
+        HttpResponse:
+            - On GET or invalid form: Rendered tag_create.html template with form
+            - On successful POST: Redirects to 'blog:tag_list' with success message
+            - On TagAlreadyExist: Rendered tag_create.html template with form and error message
+    
+    Raises:
+        TagAlreadyExist: Custom exception caught and handled with error message
+    """
     form = TagForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         try:
@@ -498,10 +586,29 @@ def tag_create(request):
         {'form': form},
     )
 
+ 
 def user_detail(request, username):
+    """
+    Display a public user profile with their published posts.
+    
+    Fetches an active user by username and displays all of their published posts
+    in paginated format. Returns 404 if the user does not exist or is inactive.
+    
+    Args:
+        request: Django HttpRequest object
+        username (str): The username of the user to display
+    
+    Returns:
+        HttpResponse: Rendered users/detail.html template with:
+            - 'profile': User object (active user)
+            - 'posts': Paginated page of published posts by this user
+    
+    Raises:
+        Http404: If no active user exists with the given username
+    """
     user = get_object_or_404(User, username=username, is_active=True)
-    posts = Post.published.filter(author=user)
-    posts = paginate(request, posts)
+    user_posts = Post.published.filter(author=user)
+    posts = paginate(request, user_posts)
     return render(
         request,
         'users/detail.html',
@@ -511,8 +618,23 @@ def user_detail(request, username):
         },
     )
 
+ 
 @login_required
 def user_draft(request):
+    """
+    Display the current user's draft posts.
+    
+    Shows all posts with 'DF' (draft) status that belong to the currently
+    authenticated user. Results are paginated for display.
+    
+    Args:
+        request: Django HttpRequest object
+    
+    Returns:
+        HttpResponse: Rendered users/detail.html template with:
+            - 'profile': The current authenticated user
+            - 'posts': Paginated page of draft posts by this user
+    """
     posts = Post.objects.filter(author=request.user, status='DF')
     posts = paginate(request, posts)
     return render(
