@@ -9,7 +9,7 @@ class CustomUser(AbstractUser):
 
     def get_absolute_url(self):
         return reverse(
-            'blog:user_detail',
+            "blog:user_detail",
             args=[
                 self.username,
             ],

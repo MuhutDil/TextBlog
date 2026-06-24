@@ -8,20 +8,22 @@ from django.utils.text import slugify
 class PostAlreadyExist(Exception):
     """
     Exception raised when attempting to publish a second post with the same title on the same day.
-    
+
     This exception prevents duplicate published posts from being created on the same date.
     """
+
     def __init__(self):
         self.message = "A post with the same title was already published in same day."
         super().__init__(self.message)
-    
+
 
 class DraftAlreadyExist(Exception):
     """
     Exception raised when attempting to create a second draft with the same title.
-    
+
     This exception prevents duplicate draft posts from being created by the same author.
     """
+
     def __init__(self):
         self.message = "You already have a draft post with same title."
         super().__init__(self.message)
@@ -36,20 +38,19 @@ class TagAlreadyExist(Exception):
 class PublishedManager(models.Manager):
     """
     Custom model manager that returns only published posts.
-    
+
     This manager provides a filtered queryset containing only posts with
     status set to PUBLISHED, simplifying queries for published content.
     """
+
     def get_queryset(self):
         """
         Return queryset filtered to only include published posts.
-        
+
         Returns:
             QuerySet: Queryset containing only posts with PUBLISHED status.
         """
-        return (
-            super().get_queryset().filter(status=Post.Status.PUBLISHED)
-        )
+        return super().get_queryset().filter(status=Post.Status.PUBLISHED)
 
 
 class Tag(models.Model):
@@ -58,9 +59,13 @@ class Tag(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        if Tag.objects.filter(
-            slug=self.slug,
-            ).exclude(id=self.id).exists():
+        if (
+            Tag.objects.filter(
+                slug=self.slug,
+            )
+            .exclude(id=self.id)
+            .exists()
+        ):
             raise TagAlreadyExist
         self.name = self.name.capitalize()
         super().save(*args, **kwargs)
@@ -71,23 +76,15 @@ class Tag(models.Model):
 
 class Post(models.Model):
     class Status(models.TextChoices):
-        DRAFT = 'DF', 'Draft'
-        PUBLISHED = 'PB', 'Published'
+        DRAFT = "DF", "Draft"
+        PUBLISHED = "PB", "Published"
+
     title = models.CharField(max_length=250)
-    slug = models.SlugField(
-        max_length=250,
-        unique_for_date='publish'
-    )
+    slug = models.SlugField(max_length=250, unique_for_date="publish")
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='blog_posts'
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="blog_posts"
     )
-    status = models.CharField(
-        max_length=2,
-        choices=Status,
-        default=Status.DRAFT
-    )
+    status = models.CharField(max_length=2, choices=Status, default=Status.DRAFT)
     publish = models.DateTimeField(null=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -98,32 +95,32 @@ class Post(models.Model):
     tags = models.ManyToManyField(Tag, blank=True, related_name="posts")
 
     class Meta:
-        ordering = ['-publish']
+        ordering = ["-publish"]
         indexes = [
-            models.Index(fields=['-publish']),
-        ] 
+            models.Index(fields=["-publish"]),
+        ]
 
     def save(self, *args, **kwargs):
         """
         Override the save method to handle slug generation and duplicate prevention.
-        
+
         This method generates a slug from the title, then checks for duplicates:
         - For published posts: Prevents duplicate titles on the same date
         - For draft posts: Prevents duplicate drafts by the same author
-        
+
         It also sets the publish timestamp to now() when a post is published,
         or sets it to None when a post is saved as a draft.
-        
+
         Args:
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments.
-            
+
         Raises:
             PostAlreadyExist: If a published post with same slug and date exists.
             DraftAlreadyExist: If a draft with same slug and author exists.
         """
         self.slug = slugify(self.title)
-        if self.status == 'PB':
+        if self.status == "PB":
             self._check_published_dublicate()
             self.publish = self.publish or timezone.now()
         else:
@@ -132,35 +129,40 @@ class Post(models.Model):
         super().save(*args, **kwargs)
 
     def _check_published_dublicate(self):
-        if Post.published.filter(
-            slug=self.slug,
-            publish__date=(self.publish or timezone.localdate()),
-            ).exclude(id=self.id).exists():
-                raise PostAlreadyExist
+        if (
+            Post.published.filter(
+                slug=self.slug,
+                publish__date=(self.publish or timezone.localdate()),
+            )
+            .exclude(id=self.id)
+            .exists()
+        ):
+            raise PostAlreadyExist
 
     def _check_draft_dublicate(self):
-        if Post.objects.filter(
-            slug=self.slug,
-            author=self.author,
-            status=Post.Status.DRAFT
-            ).exclude(id=self.id).exists():
-                raise DraftAlreadyExist
-        
+        if (
+            Post.objects.filter(
+                slug=self.slug, author=self.author, status=Post.Status.DRAFT
+            )
+            .exclude(id=self.id)
+            .exists()
+        ):
+            raise DraftAlreadyExist
 
     def get_absolute_url(self):
         """
         Generate the canonical URL for this post.
-        
+
         Returns a URL string that points to either the published post detail
         page (including date components) or the draft detail page based on
         the post's current status.
-        
+
         Returns:
             str: URL path to the post's detail view.
         """
-        if self.status == 'PB':
+        if self.status == "PB":
             return reverse(
-                'blog:post_detail',
+                "blog:post_detail",
                 args=[
                     self.publish.year,
                     self.publish.month,
@@ -170,37 +172,33 @@ class Post(models.Model):
             )
         else:
             return reverse(
-                'blog:draft_detail',
+                "blog:draft_detail",
                 args=[
                     self.slug,
                 ],
             )
-        
+
     def __str__(self):
-        return self.title 
+        return self.title
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
     commented_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='comments',
+        related_name="comments",
     )
-    body = models.TextField() 
+    body = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['created']
+        ordering = ["created"]
         indexes = [
-            models.Index(fields=['created']),
+            models.Index(fields=["created"]),
         ]
 
     def __str__(self):
-        return f'Comment by {self.commented_by} on {self.post}'
+        return f"Comment by {self.commented_by} on {self.post}"
